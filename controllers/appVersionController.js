@@ -16,7 +16,8 @@ const checkVersion = async (req, res) => {
         update: updateRequired,
         latestVersion: latestVersion.version,
         critical: latestVersion.critical,
-        message: latestVersion.message
+        message: latestVersion.message,
+        isAppAvailable: latestVersion.isAppAvailable
       });
   
     } catch (error) {

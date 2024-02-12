@@ -9,6 +9,10 @@ const AppVersionSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isAppAvailable: {
+    type: Boolean,
+    default: true
+  },
   message: {
     type: String,
     default: ''
