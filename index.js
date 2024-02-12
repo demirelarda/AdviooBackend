@@ -14,10 +14,12 @@ const appVersionRoute = require("./routes/appVersionControl")
 const notificationScheduleRoute = require("./routes/notificationSchedule")
 const currentTimeRoute = require("./routes/currentTime");
 
-const serviceAccountData = fs.readFileSync('serviceAccountKey.json');
-const serviceAccount = JSON.parse(serviceAccountData);
+
 
 dotenv.config()
+
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 
 admin.initializeApp({
