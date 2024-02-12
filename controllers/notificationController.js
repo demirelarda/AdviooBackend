@@ -4,7 +4,7 @@ const Token = require('../models/Token');
 const admin = require('firebase-admin');
 
 // running everyday at 12
-cron.schedule('0 12 * * *', async () => {
+cron.schedule('5 22 * * *', async () => {
   console.log('Checking for notifications to send...');
   await checkAndSendNotifications();
 });
