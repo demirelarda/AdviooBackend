@@ -18,7 +18,7 @@ const currentTimeRoute = require("./routes/currentTime");
 
 dotenv.config()
 
-
+console.log(`Current time = ${new Date()}`);
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 
