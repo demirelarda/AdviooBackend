@@ -13,7 +13,7 @@ const authRoute = require("./routes/auth");
 const appVersionRoute = require("./routes/appVersionControl")
 const notificationScheduleRoute = require("./routes/notificationSchedule")
 const currentTimeRoute = require("./routes/currentTime");
-
+const paymentValuesRoute = require("./routes/paymentValues");
 
 
 dotenv.config()
@@ -39,6 +39,7 @@ app.use('/api/appVersion',appVersionRoute)
 app.use('/api/fcm',fcmRoute);
 app.use('/api/notificationSchedule',notificationScheduleRoute)
 app.use('/api/',currentTimeRoute)
+app.use('/api/',paymentValuesRoute)
 
 
 const PORT = process.env.PORT || 3000;
