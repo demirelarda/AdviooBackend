@@ -9,11 +9,12 @@ const admin = require('firebase-admin');
 const fcmRoute = require('./routes/fcm');
 
 
-const authRoute = require("./routes/auth");
-const appVersionRoute = require("./routes/appVersionControl")
-const notificationScheduleRoute = require("./routes/notificationSchedule")
-const currentTimeRoute = require("./routes/currentTime");
-const paymentValuesRoute = require("./routes/paymentValues");
+const authRoute = require('./routes/auth');
+const appVersionRoute = require('./routes/appVersionControl')
+const notificationScheduleRoute = require('./routes/notificationSchedule')
+const currentTimeRoute = require('./routes/currentTime');
+const paymentValuesRoute = require('./routes/paymentValues');
+const carRoute = require('./routes/carRoutes')
 
 
 dotenv.config()
@@ -40,6 +41,7 @@ app.use('/api/fcm',fcmRoute);
 app.use('/api/notificationSchedule',notificationScheduleRoute)
 app.use('/api/',currentTimeRoute)
 app.use('/api/',paymentValuesRoute)
+app.use('/api/cars/',carRoute)
 
 
 const PORT = process.env.PORT || 3000;
