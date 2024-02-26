@@ -7,9 +7,29 @@ const admin = require('firebase-admin');
 cron.schedule('0 0 * * *', async () => {
   console.log('Cron job running to check and update ended campaigns');
   const now = new Date();
-  await CampaignRequirements.updateMany({ endDate: { $lt: now }, ended: false }, { ended: true });
-});
 
+  // Update in mongodb
+  const campaignsToUpdate = await CampaignRequirements.find({
+    endDate: { $lt: now },
+    ended: false
+  });
+
+  if (campaignsToUpdate.length > 0) {
+    for (const campaign of campaignsToUpdate) {
+      // update in firestore
+      const campaignsCollection = admin.firestore().collection('campaigns');
+      await campaignsCollection.doc(campaign.campaignId).update({ ended: true });
+
+      await CampaignRequirements.findOneAndUpdate(
+        { campaignId: campaign.campaignId },
+        { ended: true }
+      );
+    }
+    console.log(`Updated ${campaignsToUpdate.length} campaigns to ended.`);
+  } else {
+    console.log('No campaigns to update.');
+  }
+});
 
 
 cron.schedule('0 0 * * *', async () => {
@@ -22,10 +42,10 @@ cron.schedule('0 0 * * *', async () => {
     const startDate = new Date(campaign.startDate);
     const durationInDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
     const weeksPassed = Math.floor(durationInDays / 7);
-    let currentPeriod = Math.floor(weeksPassed / 4) + 1; // increment by 1 every week
+    let currentPeriod = Math.floor(weeksPassed / 4) + 1; // increment by 1 every 4 week
 
     // update current period
-    await CampaignRequirements.updateOne({ _id: campaign._id }, { currentPeriod });
+    await CampaignRequirements.updateOne({ campaignId: campaign.campaignId }, { currentPeriod });
   });
 });
 
