@@ -19,12 +19,22 @@ const CampaignRequirementsSchema = new mongoose.Schema({
     required:true
   },
   paymentDates: [{
-    type: Date,
-    required: true,
+    type: Date
   }],
   endDate:{
     type: Date,
+  },
+  durationInWeeks:{
+    type: Number,
     required: true
+  },
+  ended:{
+    type: Boolean,
+    default: false
+  },
+  currentPeriod:{
+    type: Number,
+    default: 1
   }
 });
 
