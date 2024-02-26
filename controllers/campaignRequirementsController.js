@@ -1,5 +1,6 @@
 const CampaignRequirements = require('../models/CampaignRequirements');
 const cron = require('node-cron');
+const admin = require('firebase-admin');
 
 
 
@@ -45,7 +46,7 @@ exports.getCampaignRequirements = async (req, res) => {
 
 exports.addCampaignRequirements = async (req, res) => {
   try {
-    const { campaignId, minKm, maxKm, startDate, durationInWeeks } = req.body;
+    const { campaignId, minKm, maxKm, startDate, durationInWeeks, maxCapacity } = req.body;
 
     if (durationInWeeks < 4) {
       return res.status(400).json({ message: 'Duration in weeks must be at least 4 weeks' });
@@ -69,7 +70,10 @@ exports.addCampaignRequirements = async (req, res) => {
       durationInWeeks,
       paymentDates,
       currentPeriod: 1,
-      ended: false
+      ended: false,
+      maxCapacity,
+      enrolledUserCount: 0,
+      enrolledUsers: []
     });
 
     const savedCampaignRequirements = await newCampaignRequirements.save();
@@ -78,6 +82,7 @@ exports.addCampaignRequirements = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 
 exports.editCampaignRequirements = async (req, res) => {
@@ -101,6 +106,52 @@ exports.editCampaignRequirements = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+exports.addUserIdAndUpdateUserCount = async (req, res) => {
+  const { campaignId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const campaign = await CampaignRequirements.findOne({ campaignId });
+
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    if (campaign.enrolledUserCount >= campaign.maxCapacity) {
+      return res.status(400).json({ message: 'Campaign has reached its maximum capacity' });
+    }
+
+    if (campaign.enrolledUsers.includes(userId)) {
+      return res.status(400).json({ message: 'User already enrolled' });
+    }
+
+    const updatedCampaign = await CampaignRequirements.findOneAndUpdate(
+      { campaignId },
+      {
+        $push: { enrolledUsers: userId },
+        $inc: { enrolledUserCount: 1 }
+      },
+      { new: true }
+    );
+
+    if (updatedCampaign.enrolledUserCount >= updatedCampaign.maxCapacity) {
+      // Update firestore document, change ended to true.
+      const campaignsCollection = admin.firestore().collection('campaigns');
+      await campaignsCollection.doc(campaignId).update({ ended: true });
+      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended.`);
+    }
+
+    res.status(200).json({
+      message: 'User added to campaign successfully',
+      data: updatedCampaign
+    });
+  } catch (error) {
+    console.error("Error updating campaign status in Firestore:", error);
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 

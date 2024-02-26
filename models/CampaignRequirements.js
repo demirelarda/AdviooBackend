@@ -35,7 +35,18 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   currentPeriod:{
     type: Number,
     default: 1
-  }
+  },
+  maxCapacity:{
+    type: Number,
+    required: true
+  },
+  enrolledUserCount:{
+    type: Number,
+    default: 0
+  },
+  enrolledUsers:[{
+    type: String
+  }],
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);
