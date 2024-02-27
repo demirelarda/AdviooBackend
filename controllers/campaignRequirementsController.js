@@ -159,10 +159,18 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
     );
 
     if (updatedCampaign.enrolledUserCount >= updatedCampaign.maxCapacity) {
-      // Update firestore document, change ended to true.
+      // Update Firestore document, change ended to true
       const campaignsCollection = admin.firestore().collection('campaigns');
       await campaignsCollection.doc(campaignId).update({ ended: true });
-      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended.`);
+      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended in Firestore.`);
+
+      // Update MongoDB document, change ended to true
+      await CampaignRequirements.findOneAndUpdate(
+        { campaignId },
+        { ended: true },
+        { new: true }
+      );
+      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended in MongoDB.`);
     }
 
     res.status(200).json({
@@ -170,8 +178,9 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
       data: updatedCampaign
     });
   } catch (error) {
-    console.error("Error updating campaign status in Firestore:", error);
+    console.error("Error updating campaign status:", error);
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
