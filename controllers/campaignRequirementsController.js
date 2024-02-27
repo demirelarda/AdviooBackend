@@ -93,7 +93,8 @@ exports.addCampaignRequirements = async (req, res) => {
       ended: false,
       maxCapacity,
       enrolledUserCount: 0,
-      enrolledUsers: []
+      enrolledUsers: [],
+      reachedLimit: false
     });
 
     const savedCampaignRequirements = await newCampaignRequirements.save();
@@ -167,10 +168,10 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
       // Update MongoDB document, change ended to true
       await CampaignRequirements.findOneAndUpdate(
         { campaignId },
-        { ended: true },
+        { reachedLimit: true },
         { new: true }
       );
-      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended in MongoDB.`);
+      console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as reachedLimit in MongoDB.`);
     }
 
     res.status(200).json({

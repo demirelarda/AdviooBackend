@@ -47,6 +47,10 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   enrolledUsers:[{
     type: String
   }],
+  reachedLimit:{
+    type: Boolean,
+    default: false
+  }
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);
