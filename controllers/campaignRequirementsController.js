@@ -94,7 +94,8 @@ exports.addCampaignRequirements = async (req, res) => {
       maxCapacity,
       enrolledUserCount: 0,
       enrolledUsers: [],
-      reachedLimit: false
+      reachedLimit: false,
+      status: 'OPERATING'
     });
 
     const savedCampaignRequirements = await newCampaignRequirements.save();

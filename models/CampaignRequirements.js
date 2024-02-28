@@ -50,6 +50,11 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   reachedLimit:{
     type: Boolean,
     default: false
+  },
+  status: {
+    type: String,
+    enum: ['OPERATING', 'FINISHED_COMPLETELY', 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'],
+    default: 'OPERATING'
   }
 });
 
