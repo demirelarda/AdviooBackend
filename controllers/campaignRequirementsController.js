@@ -186,3 +186,32 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
 };
 
 
+exports.deleteCampaignRequirements = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    const deletedCampaign = await CampaignRequirements.findOneAndDelete({ campaignId });
+
+    if (!deletedCampaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    res.status(200).json({ message: 'Campaign deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+
+exports.getAllCampaignRequirements = async (req, res) => {
+  try {
+    const campaigns = await CampaignRequirements.find({});
+    res.status(200).json(campaigns);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+
