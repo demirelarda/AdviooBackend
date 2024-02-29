@@ -1,21 +1,5 @@
 const PaymentValues = require('../models/PaymentValues');
 
-// add new payment values, delete older ones
-exports.addPaymentValues = async (req, res) => {
-  try {
-    // delete all payment values
-    await PaymentValues.deleteMany({});
-
-    // add new payment values document
-    const newPaymentValues = new PaymentValues(req.body);
-    await newPaymentValues.save();
-
-    res.status(201).json({ message: 'Payment values added successfully', data: newPaymentValues });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
 
 exports.getPaymentValues = async (req, res) => {
   try {
