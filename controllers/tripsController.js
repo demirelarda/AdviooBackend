@@ -34,6 +34,7 @@ async function compareTripsWithRequirements(campaignApplicationId, userId) {
       error: "No trips data found for the given campaignApplicationId and userId."
     };
   }
+  
   const firstTripCampaignId = tripsData[0].campaignId;
   const campaignRequirements = await CampaignRequirements.findOne({ campaignId: firstTripCampaignId });
 
@@ -47,10 +48,16 @@ async function compareTripsWithRequirements(campaignApplicationId, userId) {
 
   const reachedMinKM = totalKmDriven >= campaignRequirements.minKm;
   const kmDifference = reachedMinKM ? 0 : campaignRequirements.minKm - totalKmDriven;
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const isPaymentDay = campaignRequirements.paymentDates.some(paymentDate => 
+  //only return payment dates for the current period
+  const currentPeriodPaymentDates = campaignRequirements.paymentDates.filter(paymentDate => 
+    paymentDate.period === campaignRequirements.currentPeriod
+  );
+
+  const isPaymentDay = currentPeriodPaymentDates.some(paymentDate => 
     new Date(paymentDate.date).setHours(0, 0, 0, 0) === today.getTime()
   );
 
@@ -58,11 +65,15 @@ async function compareTripsWithRequirements(campaignApplicationId, userId) {
     reachedMinKM,
     kmDifference,
     isPaymentDay,
-    paymentDates: campaignRequirements.paymentDates.map(paymentDate => paymentDate.date.toISOString()),
+    paymentDates: currentPeriodPaymentDates.map(paymentDate => ({
+      date: paymentDate.date.toISOString(),
+      period: paymentDate.period
+    })),
     totalKmDriven,
     totalEarnedPayment
   };
 }
+
 
 
 exports.getTripsComparison = async (req, res) => {
