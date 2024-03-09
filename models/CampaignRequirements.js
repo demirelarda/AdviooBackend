@@ -62,6 +62,9 @@ const CampaignRequirementsSchema = new mongoose.Schema({
     type: String,
     enum: ['OPERATING', 'FINISHED_COMPLETELY', 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'],
     default: 'OPERATING'
+  },
+  lastPaymentDate:{
+    type: Date
   }
 });
 

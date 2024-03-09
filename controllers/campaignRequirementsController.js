@@ -3,36 +3,8 @@ const cron = require('node-cron');
 const admin = require('firebase-admin');
 
 
-
-cron.schedule('0 0 * * *', async () => {
-  console.log('Cron job running to check and update ended campaigns');
-  const now = new Date();
-
-  // Update in mongodb
-  const campaignsToUpdate = await CampaignRequirements.find({
-    endDate: { $lt: now },
-    ended: false
-  });
-
-  if (campaignsToUpdate.length > 0) {
-    for (const campaign of campaignsToUpdate) {
-      // update in firestore
-      const campaignsCollection = admin.firestore().collection('campaigns');
-      await campaignsCollection.doc(campaign.campaignId).update({ ended: true });
-
-      await CampaignRequirements.findOneAndUpdate(
-        { campaignId: campaign.campaignId },
-        { ended: true }
-      );
-    }
-    console.log(`Updated ${campaignsToUpdate.length} campaigns to ended.`);
-  } else {
-    console.log('No campaigns to update.');
-  }
-});
-
-
-cron.schedule('0 0 * * *', async () => {
+// Cron job to update currentPeriod for each campaign
+cron.schedule('0 10 * * *', async () => {
   console.log('Cron job running to update currentPeriod for each campaign');
 
   const campaigns = await CampaignRequirements.find({ ended: false });
@@ -47,6 +19,73 @@ cron.schedule('0 0 * * *', async () => {
     // update current period
     await CampaignRequirements.updateOne({ campaignId: campaign.campaignId }, { currentPeriod });
   });
+});
+
+
+// Cron job to check and update CampaignRequirements based on endDate
+cron.schedule('5 0 * * *', async () => {
+  console.log('Running cron job to check and update CampaignRequirements based on endDate');
+  const now = new Date();
+
+  const campaignsToUpdate = await CampaignRequirements.find({
+    endDate: { $lte: now },
+    status: 'OPERATING'
+  });
+
+  for (const campaign of campaignsToUpdate) {
+    await CampaignRequirements.findByIdAndUpdate(campaign._id, {
+      status: 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'
+    });
+  }
+}, {
+  scheduled: true,
+  timezone: "GMT"
+});
+
+
+// Cron job to check and update CampaignRequirements based on lastPaymentDate
+cron.schedule('3 0 * * *', async () => {
+  console.log('Running cron job to check and update CampaignRequirements based on lastPaymentDate');
+  const now = new Date();
+
+  // Get all CampaignRequirements that should be marked as finished
+  const campaignsToUpdate = await CampaignRequirements.find({
+    lastPaymentDate: { $lte: now },
+    status: 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'
+  });
+
+  const campaignsCollection = admin.firestore().collection('campaigns');
+  const campaignApplicationsCollection = admin.firestore().collection('campaignApplications');
+  const usersCollection = admin.firestore().collection('users');
+
+  for (const campaign of campaignsToUpdate) {
+    // Update CampaignRequirements status in MongoDB
+    await CampaignRequirements.findByIdAndUpdate(campaign._id, {
+      status: 'FINISHED_COMPLETELY'
+    });
+
+    // Update the 'ended' field in the Firestore campaigns collection
+    await campaignsCollection.doc(campaign.campaignId).update({ ended: true });
+
+    // Update related campaign applications in Firestore
+    const campaignAppsSnapshot = await campaignApplicationsCollection.where('campaignId', '==', campaign.campaignId).get();
+    campaignAppsSnapshot.forEach(async doc => {
+      await campaignApplicationsCollection.doc(doc.id).update({ ended: true, status: 9 });
+    });
+
+    // Update user documents in Firestore
+    for (const userId of campaign.enrolledUsers) {
+      await usersCollection.doc(userId).update({
+        currentCampaignApplicationId: "",
+        currentEnrolledCampaign: ""
+      });
+    }
+  }
+
+  console.log('CampaignRequirements update based on lastPaymentDate completed.');
+}, {
+  scheduled: true,
+  timezone: "GMT"
 });
 
 
