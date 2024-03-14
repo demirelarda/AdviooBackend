@@ -14,6 +14,11 @@ const NotificationScheduleSchema = new mongoose.Schema({
     enum: ['NONE', 'NOTIFIED_ONCE', 'NOTIFIED_TWICE', 'NOTIFIED_THREE_TIMES'],
     default: 'NONE',
     required: true,
+  },
+  campaignId: {
+    type: String,
+    required: true,
+    unique: true
   }
 });
 

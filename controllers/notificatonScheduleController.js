@@ -1,13 +1,13 @@
 const NotificationSchedule = require('../models/NotificationSchedule');
 
 exports.addNotificationSchedule = async (req, res) => {
-  const { userId, notificationDates, status, campaignApplicationId } = req.body;
+  const { campaignId, userIds, notificationDates, status } = req.body;
   try {
     const newSchedule = new NotificationSchedule({
-      userId,
+      userIds,
       notificationDates,
       status,
-      campaignApplicationId
+      campaignId
     });
 
     const savedSchedule = await newSchedule.save();
@@ -19,10 +19,10 @@ exports.addNotificationSchedule = async (req, res) => {
 
 
 exports.getNotificationSchedule = async (req, res) => {
-  const { campaignApplicationId } = req.params;
+  const { campaignId } = req.params;
   
   try {
-      const schedule = await NotificationSchedule.findOne({ campaignApplicationId: campaignApplicationId });
+      const schedule = await NotificationSchedule.findOne({ campaignId: campaignId });
       if (schedule) {
           res.json(schedule);
       } else {
@@ -34,9 +34,9 @@ exports.getNotificationSchedule = async (req, res) => {
 };
 
 exports.deleteNotificationSchedule = async (req, res) => {
-  const { campaignApplicationId } = req.params;
+  const { campaignId } = req.params;
   try {
-    const deletedSchedule = await NotificationSchedule.findOneAndDelete({ campaignApplicationId });
+    const deletedSchedule = await NotificationSchedule.findOneAndDelete({ campaignId });
     if (!deletedSchedule) {
       return res.status(404).json({ message: 'Schedule not found' });
     }
@@ -47,11 +47,11 @@ exports.deleteNotificationSchedule = async (req, res) => {
 };
 
 exports.updateNotificationScheduleStatus = async (req, res) => {
-  const { campaignApplicationId } = req.params;
+  const { campaignId } = req.params;
   const { status } = req.body;
   try {
     const updatedSchedule = await NotificationSchedule.findOneAndUpdate(
-      { campaignApplicationId },
+      { campaignId },
       { status },
       { new: true }
     );
