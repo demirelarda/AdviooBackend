@@ -33,20 +33,22 @@ async function checkAndSendNotifications() {
         schedule.status = 'NOTIFIED_THREE_TIMES';
         break;
       default:
-        // If the case is NOTIFIED_THREE_TIMES or if any error happened we don't send notification
         continue;
     }
 
-    // Find user token and send notification
-    const tokenDoc = await Token.findOne({ userId: schedule.userId });
-    if (tokenDoc && tokenDoc.tokenList.length > 0) {
-      sendFCMNotification(tokenDoc.tokenList, message);
+    // Find user tokens and send notification to each user
+    for (const userId of schedule.userIds) {
+      const tokenDoc = await Token.findOne({ userId: userId });
+      if (tokenDoc && tokenDoc.tokenList.length > 0) {
+        sendFCMNotification(tokenDoc.tokenList, message);
+      }
     }
 
     // Update Schedule document
     await schedule.save();
   }
 }
+
 
 function sendFCMNotification(tokens, message) {
   const payload = {
