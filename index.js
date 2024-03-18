@@ -26,6 +26,7 @@ const notificationScheduleRoute = require('./routes/notificationSchedule')
 const currentTimeRoute = require('./routes/currentTime');
 const paymentValuesRoute = require('./routes/paymentValues');
 const carRoute = require('./routes/carRoutes')
+const emailRoute = require('./routes/email')
 const notificationController = require('./controllers/notificationController');
 
 
@@ -46,6 +47,7 @@ app.use('/api/',paymentValuesRoute)
 app.use('/api/cars/',carRoute)
 app.use('/api/campaignRequirements',campaignRequirementsRoute)
 app.use('/api/checkPaymentStatus',tripsRoute)
+app.use('/api/email',emailRoute)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
