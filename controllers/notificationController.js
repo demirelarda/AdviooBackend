@@ -1,54 +1,50 @@
 const cron = require('node-cron');
-const NotificationSchedule = require('../models/NotificationSchedule');
 const Token = require('../models/Token');
 const admin = require('firebase-admin');
+const CampaignRequirements = require('../models/CampaignRequirements');
 
-// running everyday at 12
-cron.schedule('5 22 * * *', async () => {
-  console.log('Checking for notifications to send...');
+
+cron.schedule('52 1 * * *', async () => {
+  console.log('Checking for notifications to send at:', new Date().toISOString());
   await checkAndSendNotifications();
 });
 
 async function checkAndSendNotifications() {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // we only need to compare date
+  today.setHours(0, 0, 0, 0);
 
-  const schedules = await NotificationSchedule.find({
-    notificationDates: today
-  });
+  const campaigns = await CampaignRequirements.find({ ended: false });
 
-  for (const schedule of schedules) {
-    let message = '';
-    switch (schedule.status) {
-      case 'NONE':
-        message = "After 2 days, don't forget to take the necessary actions and get paid!";
-        schedule.status = 'NOTIFIED_ONCE';
-        break;
-      case 'NOTIFIED_ONCE':
+  for (const campaign of campaigns) {
+    for (const paymentDateObj of campaign.paymentDates) {
+      const paymentDate = new Date(paymentDateObj.date);
+      paymentDate.setHours(0, 0, 0, 0);
+
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      let message = '';
+
+      if (paymentDate.getTime() === tomorrow.getTime()) {
         message = "Don't forget to take the necessary actions and get paid tomorrow!";
-        schedule.status = 'NOTIFIED_TWICE';
-        break;
-      case 'NOTIFIED_TWICE':
+      } else if (paymentDate.getTime() === today.getTime()) {
         message = "You can get paid! Please do the verification as soon as possible.";
-        schedule.status = 'NOTIFIED_THREE_TIMES';
-        break;
-      default:
+      } else {
         continue;
-    }
+      }
 
-    // Find user tokens and send notification to each user
-    for (const userId of schedule.userIds) {
-      const tokenDoc = await Token.findOne({ userId: userId });
-      if (tokenDoc && tokenDoc.tokenList.length > 0) {
-        sendFCMNotification(tokenDoc.tokenList, message);
+      for (const user of campaign.enrolledUsers.filter(u => u.shouldSendNotification)) {
+        const tokenDoc = await Token.findOne({ userId: user.userId });
+        if (tokenDoc && tokenDoc.tokenList.length > 0) {
+          console.log(`Sending notification to userId ${user.userId} with tokens: ${tokenDoc.tokenList.join(', ')}`);
+          sendFCMNotification(tokenDoc.tokenList, message);
+        } else {
+          console.log(`No tokens found or empty token list for userId: ${user.userId}`);
+        }
       }
     }
-
-    // Update Schedule document
-    await schedule.save();
   }
 }
-
 
 function sendFCMNotification(tokens, message) {
   const payload = {

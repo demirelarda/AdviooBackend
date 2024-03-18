@@ -22,6 +22,43 @@ cron.schedule('0 10 * * *', async () => {
 });
 
 
+// cron job to update notification status for users at the end of the each payment period
+cron.schedule('8 0 * * *', async () => {
+  console.log('Running cron job to update notification status for users.');
+
+  try {
+    const campaigns = await CampaignRequirements.find({ ended: false });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let campaign of campaigns) {
+      let shouldUpdateUsers = campaign.lastPaymentDates.some(paymentDate => {
+        const paymentDay = new Date(paymentDate);
+        paymentDay.setHours(0, 0, 0, 0);
+        return paymentDay.getTime() === today.getTime();
+      });
+
+      if (shouldUpdateUsers) {
+        const updatedUsers = campaign.enrolledUsers.map(user => ({
+          ...user,
+          shouldSendNotification: true
+        }));
+
+        await CampaignRequirements.findByIdAndUpdate(campaign._id, {
+          enrolledUsers: updatedUsers
+        });
+
+        console.log(`Updated notification status for campaign: ${campaign.campaignId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error running the cron job:', error);
+  }
+});
+
+
+
 // Cron job to check and update CampaignRequirements based on endDate
 cron.schedule('5 0 * * *', async () => {
   console.log('Running cron job to check and update CampaignRequirements based on endDate');
@@ -119,26 +156,26 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
       return res.status(400).json({ message: 'Campaign has reached its maximum capacity' });
     }
 
-    if (campaign.enrolledUsers.includes(userId)) {
+    const isUserAlreadyEnrolled = campaign.enrolledUsers.some(enrolledUser => enrolledUser.userId === userId);
+
+    if (isUserAlreadyEnrolled) {
       return res.status(400).json({ message: 'User already enrolled' });
     }
 
     const updatedCampaign = await CampaignRequirements.findOneAndUpdate(
       { campaignId },
       {
-        $push: { enrolledUsers: userId },
+        $push: { enrolledUsers: { userId: userId, shouldSendNotification: true } },
         $inc: { enrolledUserCount: 1 }
       },
       { new: true }
     );
 
     if (updatedCampaign.enrolledUserCount >= updatedCampaign.maxCapacity) {
-      // Update Firestore document, change ended to true
       const campaignsCollection = admin.firestore().collection('campaigns');
       await campaignsCollection.doc(campaignId).update({ ended: true });
       console.log(`Campaign ${campaignId} has reached its maximum capacity and marked as ended in Firestore.`);
 
-      // Update MongoDB document, change ended to true
       await CampaignRequirements.findOneAndUpdate(
         { campaignId },
         { reachedLimit: true },
@@ -154,6 +191,35 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
   } catch (error) {
     console.error("Error updating campaign status:", error);
     res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+exports.updateUserNotificationStatus = async (req, res) => {
+  const { campaignId, userId } = req.body;
+
+  try {
+    const campaign = await CampaignRequirements.findOne({ campaignId: campaignId });
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found.' });
+    }
+
+    const userIndex = campaign.enrolledUsers.findIndex(user => user.userId === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({ message: 'User not found in the campaign.' });
+    }
+
+    campaign.enrolledUsers[userIndex].shouldSendNotification = false;
+
+    await campaign.save();
+
+    res.status(200).json({
+      updated: true
+    });
+
+  } catch (error) {
+    console.error("Error updating user's notification status:", error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

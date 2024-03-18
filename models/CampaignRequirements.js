@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CampaignRequirementsSchema = new mongoose.Schema({
-  campaignId:{
+  campaignId: {
     type: String,
     required: true,
     unique: true
@@ -10,13 +10,13 @@ const CampaignRequirementsSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  maxKm:{
+  maxKm: {
     type: Number,
     required: true
   },
-  startDate:{
-    type:Date,
-    required:true
+  startDate: {
+    type: Date,
+    required: true
   },
   paymentDates: [{
     date: {
@@ -28,33 +28,34 @@ const CampaignRequirementsSchema = new mongoose.Schema({
       required: true
     }
   }],
-  endDate:{
+  endDate: {
     type: Date,
   },
-  durationInWeeks:{
+  durationInWeeks: {
     type: Number,
     required: true
   },
-  ended:{
+  ended: {
     type: Boolean,
     default: false
   },
-  currentPeriod:{
+  currentPeriod: {
     type: Number,
     default: 1
   },
-  maxCapacity:{
+  maxCapacity: {
     type: Number,
     required: true
   },
-  enrolledUserCount:{
+  enrolledUserCount: {
     type: Number,
     default: 0
   },
-  enrolledUsers:[{
-    type: String
+  enrolledUsers: [{
+    userId: { type: String, required: true },
+    shouldSendNotification: { type: Boolean, default: true }
   }],
-  reachedLimit:{
+  reachedLimit: {
     type: Boolean,
     default: false
   },
@@ -63,9 +64,12 @@ const CampaignRequirementsSchema = new mongoose.Schema({
     enum: ['OPERATING', 'FINISHED_COMPLETELY', 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'],
     default: 'OPERATING'
   },
-  lastPaymentDate:{
+  lastPaymentDate: {
     type: Date
-  }
+  },
+  lastPaymentDates:[{
+    type: Date,
+  }],
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);

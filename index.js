@@ -26,6 +26,8 @@ const notificationScheduleRoute = require('./routes/notificationSchedule')
 const currentTimeRoute = require('./routes/currentTime');
 const paymentValuesRoute = require('./routes/paymentValues');
 const carRoute = require('./routes/carRoutes')
+const notificationController = require('./controllers/notificationController');
+
 
 
 mongoose.connect(process.env.MONGODB_URI)
