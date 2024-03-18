@@ -3,7 +3,7 @@ const db = admin.firestore();
 const mailjet = require('node-mailjet').apiConnect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE);
 
 exports.sendEmailToInstaller = async (req, res) => {
-    const { installerId, campaignTitle, carBrand, carModel, phoneNumber, campaignId } = req.body;
+    const { installerId, campaignTitle, carBrand, carModel, phoneNumber, campaignId, customerName, campaignApplicationId } = req.body;
 
     try {
         const installerDoc = await db.collection('installers').doc(installerId).get();
@@ -15,6 +15,10 @@ exports.sendEmailToInstaller = async (req, res) => {
         const installerData = installerDoc.data();
         const installerEmail = installerData.installerEmail;
         const installerName = installerData.installerName;
+        const nameParts = customerName.trim().split(/\s+/);
+        const formattedName = nameParts.length > 1 
+            ? `${nameParts[0]} ${nameParts[nameParts.length - 1].charAt(0)}.` 
+            : customerName;
 
         const request = mailjet.post("send", { 'version': 'v3.1' }).request({
             "Messages": [
@@ -33,6 +37,7 @@ exports.sendEmailToInstaller = async (req, res) => {
                     "HTMLPart": `
                     <h3>You have a new customer!</h3>
                     <p>Here is the contact information of your customer:</p>
+                    <p><strong>Customer Name:</strong> ${formattedName}</p>
                     <p><strong>Campaign Name:</strong> ${campaignTitle}</p>
                     <p><strong>Car Model:</strong> ${carBrand}, ${carModel}</p>
                     <p><strong>Phone Number:</strong> ${phoneNumber}</p>
