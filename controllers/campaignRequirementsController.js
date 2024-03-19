@@ -220,8 +220,8 @@ exports.addUserIdAndUpdateUserCount = async (req, res) => {
     }
 
     res.status(200).json({
-      message: 'User added to campaign successfully',
-      data: updatedCampaign
+      message: 'User added to the campaign successfully',
+      success: true,
     });
   } catch (error) {
     console.error("Error updating campaign status:", error);
