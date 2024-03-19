@@ -19,7 +19,11 @@ cron.schedule('0 10 * * *', async () => {
     // update current period
     await CampaignRequirements.updateOne({ campaignId: campaign.campaignId }, { currentPeriod });
   });
-});
+}
+  , { 
+    scheduled: true,
+    timezone: "GMT"
+  });
 
 
 // cron job to update notification status for users at the end of the each payment period
@@ -55,7 +59,38 @@ cron.schedule('8 0 * * *', async () => {
   } catch (error) {
     console.error('Error running the cron job:', error);
   }
-});
+}, {
+  scheduled: true,
+  timezone: "GMT"
+}
+
+);
+
+
+// Cron job to check and update CampaignRequirements based on startDate
+cron.schedule('9 0 * * *', async () => {
+
+  console.log('Running cron job to check and update CampaignRequirements based on startDate');
+  const now = new Date();
+
+  const campaignsToUpdate = await CampaignRequirements.find({
+    startDate: { $lte: now },
+    status: 'NOT_STARTED_YET'
+  });
+
+  for (const campaign of campaignsToUpdate) {
+    await CampaignRequirements.findByIdAndUpdate(campaign._id, {
+      status: 'OPERATING'
+    });
+  }
+
+}, {
+  scheduled: true,
+  timezone: "GMT"
+}
+);
+
+
 
 
 

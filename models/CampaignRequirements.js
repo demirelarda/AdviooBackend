@@ -61,8 +61,8 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['OPERATING', 'FINISHED_COMPLETELY', 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'],
-    default: 'OPERATING'
+    enum: ['NOT_STARTED_YET','OPERATING', 'FINISHED_COMPLETELY', 'FINISHED_STILL_HAS_TIME_FOR_PAYMENT'],
+    default: 'NOT_STARTED_YET'
   },
   lastPaymentDate: {
     type: Date
@@ -70,6 +70,9 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   lastPaymentDates:[{
     type: Date,
   }],
+  lastApplicationDate: {
+    type: Date
+  }
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);
