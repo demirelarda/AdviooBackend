@@ -72,7 +72,11 @@ const CampaignRequirementsSchema = new mongoose.Schema({
   }],
   lastApplicationDate: {
     type: Date
-  }
+  },
+  requiredPhotos: [{
+    photoName: { type: String, required: true },
+    photoCommand: { type: String, required: true }
+  }],
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);
