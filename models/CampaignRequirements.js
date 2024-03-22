@@ -77,6 +77,14 @@ const CampaignRequirementsSchema = new mongoose.Schema({
     photoName: { type: String, required: true },
     photoCommand: { type: String, required: true }
   }],
+  requiredPaymentPhotos: [{
+    photoName: { type: String, required: true },
+    photoCommand: { type: String, required: true }
+  }],
+  requiredBeginningPhotos: [{
+    photoName: { type: String, required: true },
+    photoCommand: { type: String, required: true }
+  }]
 });
 
 module.exports = mongoose.model('CampaignRequirements', CampaignRequirementsSchema);
