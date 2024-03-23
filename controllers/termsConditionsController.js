@@ -4,7 +4,7 @@ const TermsConditions = require('../models/TermsConditionsModel');
 
 
 exports.acceptTermsConditions = async (req, res) => {
-    const { userId, userEmail, termsVersion, termsAccepted } = req.body;
+    const { userId, userEmail, termsVersion, termsAccepted, userFullName } = req.body;
     const userIP = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     try {
@@ -13,6 +13,7 @@ exports.acceptTermsConditions = async (req, res) => {
             userEmail,
             termsVersion,
             termsAccepted,
+            userFullName,
             date: admin.firestore.FieldValue.serverTimestamp(),
             userIP
         });
