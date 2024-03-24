@@ -5,7 +5,7 @@ const TermsConditions = require('../models/TermsConditionsModel');
 
 exports.acceptTermsConditions = async (req, res) => {
     const { userId, userEmail, termsVersion, termsAccepted, userFullName } = req.body;
-    const userIP = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userIP = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     try {
         const docRef = await db.collection('terms_acceptance').add({
